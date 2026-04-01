@@ -1,5 +1,5 @@
-/// Simple logger macros. Uses stderr so stdout stays clean for reporters.
-/// Replace with `tracing` crate if you need structured logging later.
+//! Simple logger macros. Uses stderr so stdout stays clean for reporters.
+//! Replace with `tracing` crate if you need structured logging later.
 
 #[macro_export]
 macro_rules! log_debug {
