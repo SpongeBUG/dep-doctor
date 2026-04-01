@@ -15,4 +15,4 @@ keywords = ["security", "dependencies", "audit", "scanner", "cve"]
 dep-doctor = "dep_doctor._runner:main"
 
 [project.urls]
-Repository = "https://github.com/YOUR_USERNAME/dep-doctor"
+Repository = "https://github.com/SpongeBUG/dep-doctor"

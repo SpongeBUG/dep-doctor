@@ -5,7 +5,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/YOUR_USERNAME/dep-doctor"
+    "url": "https://github.com/SpongeBUG/dep-doctor"
   },
   "keywords": ["security", "dependencies", "audit", "scanner", "cve"],
   "bin": {

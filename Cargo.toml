@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 description = "Scan repos for known dependency problems and find affected source files"
 license = "MIT"
-repository = "https://github.com/YOUR_USERNAME/dep-doctor"
+repository = "https://github.com/SpongeBUG/dep-doctor"
 keywords = ["security", "dependencies", "audit", "scanner"]
 categories = ["command-line-utilities", "development-tools"]
 
@@ -17,36 +17,19 @@ name = "integration"
 path = "tests/integration/scan_test.rs"
 
 [dependencies]
-# CLI
 clap = { version = "4", features = ["derive", "color"] }
-
-# Serialization
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 toml = "0.8"
-
-# Semver matching
 semver = "1"
-
-# Regex (source pattern matching)
 regex = "1"
-
-# File walking + .gitignore support
 walkdir = "2"
 ignore = "0.4"
-
-# Error handling
 anyhow = "1"
 thiserror = "1"
-
-# Terminal output
 colored = "2"
 indicatif = "0.17"
-
-# Parallel scanning
 rayon = "1"
-
-# Glob patterns
 glob = "0.3"
 
 [dev-dependencies]

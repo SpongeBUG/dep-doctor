@@ -1,9 +1,8 @@
 """
 Downloads and invokes the dep-doctor native binary.
-Same pattern as the npm wrapper — fetches from GitHub Releases on first run.
+Fetches from GitHub Releases on first run — same pattern as the npm wrapper.
 """
 
-import os
 import platform
 import stat
 import subprocess
@@ -12,7 +11,7 @@ import urllib.request
 from pathlib import Path
 
 VERSION = "0.1.0"
-REPO = "YOUR_USERNAME/dep-doctor"
+REPO = "SpongeBUG/dep-doctor"
 BIN_DIR = Path(__file__).parent / "bin"
 
 
@@ -21,15 +20,14 @@ def _asset_name() -> str:
     machine = platform.machine().lower()
 
     matrix = {
-        ("linux",  "x86_64"):  "dep-doctor-x86_64-unknown-linux-musl",
-        ("linux",  "aarch64"): "dep-doctor-aarch64-unknown-linux-musl",
-        ("darwin", "x86_64"):  "dep-doctor-x86_64-apple-darwin",
-        ("darwin", "arm64"):   "dep-doctor-aarch64-apple-darwin",
-        ("windows","amd64"):   "dep-doctor-x86_64-pc-windows-msvc.exe",
+        ("linux",   "x86_64"):  "dep-doctor-x86_64-unknown-linux-musl",
+        ("linux",   "aarch64"): "dep-doctor-aarch64-unknown-linux-musl",
+        ("darwin",  "x86_64"):  "dep-doctor-x86_64-apple-darwin",
+        ("darwin",  "arm64"):   "dep-doctor-aarch64-apple-darwin",
+        ("windows", "amd64"):   "dep-doctor-x86_64-pc-windows-msvc.exe",
     }
 
-    key = (system, machine)
-    asset = matrix.get(key)
+    asset = matrix.get((system, machine))
     if not asset:
         raise RuntimeError(
             f"Unsupported platform: {system}/{machine}. "
@@ -53,7 +51,6 @@ def _ensure_binary() -> Path:
 
     print(f"dep-doctor: downloading binary ({asset})...", file=sys.stderr)
     BIN_DIR.mkdir(parents=True, exist_ok=True)
-
     urllib.request.urlretrieve(url, path)
 
     if platform.system().lower() != "windows":
@@ -71,8 +68,7 @@ def main() -> None:
         print("Install manually: cargo install dep-doctor", file=sys.stderr)
         sys.exit(1)
 
-    result = subprocess.run([str(binary)] + sys.argv[1:])
-    sys.exit(result.returncode)
+    sys.exit(subprocess.run([str(binary)] + sys.argv[1:]).returncode)
 
 
 if __name__ == "__main__":
