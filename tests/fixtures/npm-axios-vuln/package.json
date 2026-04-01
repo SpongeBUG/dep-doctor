@@ -1,0 +1,9 @@
+{
+  "name": "my-api",
+  "version": "1.0.0",
+  "dependencies": {
+    "axios": "0.27.2",
+    "lodash": "4.17.15",
+    "express": "4.18.2"
+  }
+}

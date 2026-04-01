@@ -12,6 +12,10 @@ categories = ["command-line-utilities", "development-tools"]
 name = "dep-doctor"
 path = "src/main.rs"
 
+[[test]]
+name = "integration"
+path = "tests/integration/scan_test.rs"
+
 [dependencies]
 # CLI
 clap = { version = "4", features = ["derive", "color"] }

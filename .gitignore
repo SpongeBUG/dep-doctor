@@ -1,0 +1,31 @@
+# Binaries / build output
+target/
+dist/
+
+# npm wrapper node_modules
+npm-wrapper/node_modules/
+npm-wrapper/bin/dep-doctor
+npm-wrapper/bin/dep-doctor.exe
+
+# pypi wrapper downloaded binary
+pypi-wrapper/dep_doctor/bin/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test output
+*.log
+report.md
+report.json

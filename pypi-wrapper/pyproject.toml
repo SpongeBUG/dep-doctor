@@ -1,0 +1,18 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "dep-doctor"
+version = "0.1.0"
+description = "Scan repos for known dependency problems and find affected source files"
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.8"
+keywords = ["security", "dependencies", "audit", "scanner", "cve"]
+
+[project.scripts]
+dep-doctor = "dep_doctor._runner:main"
+
+[project.urls]
+Repository = "https://github.com/YOUR_USERNAME/dep-doctor"
