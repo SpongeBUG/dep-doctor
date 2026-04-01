@@ -2,6 +2,7 @@
 // The binary entry point remains src/main.rs.
 pub mod cli;
 pub mod deep_scan;
+pub mod fetcher;
 pub mod problems;
 pub mod reporter;
 pub mod scanner;

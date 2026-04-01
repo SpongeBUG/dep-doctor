@@ -69,7 +69,7 @@ POST https://api.osv.dev/v1/query
 
 ## Task Backlog
 
-### 🔴 P0 — OSV Online Mode
+### ✅ DONE — OSV Online Mode (v0.2.0)
 **What:** `--online` flag queries OSV.dev in real-time for every scanned package.
 **Impact:** Instant access to ALL CVEs without waiting for a DB update.
 **Files:**
@@ -121,7 +121,7 @@ Refreshes once per day. Falls back to built-in DB if offline.
 
 ---
 
-### 🟡 P1 — CVSS → Severity Mapping
+### ✅ DONE — CVSS → Severity Mapping (v0.2.0)
 **What:** Proper conversion of CVSS scores to our severity enum.
 ```
 CVSS 9.0–10.0 → critical
@@ -194,7 +194,7 @@ and re-scans automatically.
 
 | Milestone | Tasks | Goal |
 |-----------|-------|------|
-| v0.2.0 | OSV online mode + CVSS mapping | Real-time CVE lookup |
+| v0.2.0 ✅ | OSV online mode + CVSS mapping | Real-time CVE lookup |
 | v0.3.0 | Nightly harvest + feed consumer | Fully automated DB |
 | v0.4.0 | Supply chain detection | Beyond CVEs |
 | v0.5.0 | LLM pattern generation | Deep scan for all CVEs |

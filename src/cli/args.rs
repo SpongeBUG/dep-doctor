@@ -43,6 +43,10 @@ pub struct ScanArgs {
     #[arg(long, short = 'o')]
     pub output: Option<PathBuf>,
 
+    /// Query OSV.dev for real-time vulnerability data
+    #[arg(long)]
+    pub online: bool,
+
     /// Minimum severity to report
     #[arg(long, short = 's', value_enum, default_value = "low")]
     pub severity: SeverityArg,

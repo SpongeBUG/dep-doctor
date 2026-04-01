@@ -30,7 +30,7 @@ pub fn version_matches_range(version_str: &str, range_str: &str) -> bool {
 
 /// Converts space-separated comparators to comma-separated AND conditions.
 /// ">=0.8.1 <1.6.0" → ">=0.8.1, <1.6.0"
-fn space_to_comma_and(segment: &str) -> String {
+pub fn space_to_comma_and(segment: &str) -> String {
     let comparator_chars = ['>', '<', '=', '~', '^'];
     let mut result = String::with_capacity(segment.len() + 4);
 
