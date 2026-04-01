@@ -99,10 +99,10 @@ pub enum SeverityArg {
 impl SeverityArg {
     pub fn rank(&self) -> u8 {
         match self {
-            Self::Info     => 1,
-            Self::Low      => 2,
-            Self::Medium   => 3,
-            Self::High     => 4,
+            Self::Info => 1,
+            Self::Low => 2,
+            Self::Medium => 3,
+            Self::High => 4,
             Self::Critical => 5,
         }
     }

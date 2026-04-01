@@ -12,8 +12,14 @@ pub fn report(findings: &[Finding], output: Option<&Path>) -> Result<()> {
     if findings.is_empty() {
         writeln!(md, "✅ No known problems found.")?;
     } else {
-        writeln!(md, "| Repo | Severity | Problem | Package | Version | Fix |")?;
-        writeln!(md, "|------|----------|---------|---------|---------|-----|")?;
+        writeln!(
+            md,
+            "| Repo | Severity | Problem | Package | Version | Fix |"
+        )?;
+        writeln!(
+            md,
+            "|------|----------|---------|---------|---------|-----|"
+        )?;
 
         for f in findings {
             writeln!(
@@ -33,7 +39,11 @@ pub fn report(findings: &[Finding], output: Option<&Path>) -> Result<()> {
         for f in findings {
             writeln!(md, "## {} — {}", f.repo_name, f.problem.id)?;
             writeln!(md, "**{}**\n", f.problem.title)?;
-            writeln!(md, "- **Package**: `{}` @ `{}`", f.package, f.installed_version)?;
+            writeln!(
+                md,
+                "- **Package**: `{}` @ `{}`",
+                f.package, f.installed_version
+            )?;
             writeln!(md, "- **Severity**: {}", f.problem.severity.to_uppercase())?;
             if let Some(fix) = &f.problem.fixed_in {
                 writeln!(md, "- **Fix**: upgrade to `>={}`", fix)?;
@@ -45,7 +55,11 @@ pub fn report(findings: &[Finding], output: Option<&Path>) -> Result<()> {
             if !f.source_hits.is_empty() {
                 writeln!(md, "\n### Affected source locations\n")?;
                 for hit in &f.source_hits {
-                    writeln!(md, "**`{}` line {}** [{}]", hit.file, hit.line_number, hit.confidence)?;
+                    writeln!(
+                        md,
+                        "**`{}` line {}** [{}]",
+                        hit.file, hit.line_number, hit.confidence
+                    )?;
                     writeln!(md, "```")?;
                     writeln!(md, "{}", hit.line_content)?;
                     writeln!(md, "```")?;

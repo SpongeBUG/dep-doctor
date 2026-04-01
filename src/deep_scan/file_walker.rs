@@ -4,17 +4,15 @@ use std::path::{Path, PathBuf};
 
 /// Walk source files in a repo, respecting .gitignore.
 /// Only returns files with the specified extensions.
-/// Skips node_modules, vendor, target, .git automatically.
 pub fn walk_source_files(root: &Path, extensions: &[&str]) -> Result<Vec<PathBuf>> {
     let mut files = Vec::new();
 
     let walker = WalkBuilder::new(root)
-        .hidden(true)        // respect hidden files
-        .git_ignore(true)    // respect .gitignore
-        .git_global(true)    // respect global gitignore
+        .hidden(true) // respect hidden files
+        .git_ignore(true) // respect .gitignore
+        .git_global(true) // respect global gitignore
         .filter_entry(|e| {
             let name = e.file_name().to_string_lossy();
-            // Always skip these heavy directories
             !matches!(
                 name.as_ref(),
                 "node_modules" | "vendor" | "target" | ".git" | "dist" | "build" | ".next"

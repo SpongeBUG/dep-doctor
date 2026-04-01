@@ -1,6 +1,6 @@
-use anyhow::Result;
 use crate::scanner::manifest::InstalledPackage;
 use crate::scanner::repo_finder::Repo;
+use anyhow::Result;
 
 /// Reads go.mod and extracts direct + indirect dependencies.
 pub fn read(repo: &Repo) -> Result<Vec<InstalledPackage>> {
@@ -30,7 +30,6 @@ fn parse_go_mod(content: &str, repo_name: &str, repo_path: &str) -> Vec<Installe
             continue;
         }
 
-        // Single-line require: require github.com/foo/bar v1.2.3
         let target = if in_require_block {
             line
         } else if let Some(rest) = line.strip_prefix("require ") {
@@ -48,9 +47,8 @@ fn parse_go_mod(content: &str, repo_name: &str, repo_path: &str) -> Vec<Installe
 }
 
 fn parse_go_dep_line(line: &str, repo_name: &str, repo_path: &str) -> Option<InstalledPackage> {
-    // Skip comments and replace directives
     let line = line.split("//").next().unwrap_or("").trim();
-    if line.is_empty() || line.starts_with("//") {
+    if line.is_empty() {
         return None;
     }
 
@@ -59,14 +57,11 @@ fn parse_go_dep_line(line: &str, repo_name: &str, repo_path: &str) -> Option<Ins
         return None;
     }
 
-    let name = parts[0].to_string();
-    let version = parts[1].trim_start_matches('v').to_string();
-
     Some(InstalledPackage {
         repo_name: repo_name.to_string(),
         repo_path: repo_path.to_string(),
         ecosystem: "go".into(),
-        name,
-        version,
+        name: parts[0].to_string(),
+        version: parts[1].trim_start_matches('v').to_string(),
     })
 }

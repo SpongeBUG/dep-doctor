@@ -10,7 +10,6 @@ pub fn report(findings: &[Finding], show_summary: bool) -> Result<()> {
         return Ok(());
     }
 
-    // Group by repo
     let mut by_repo: HashMap<&str, Vec<&Finding>> = HashMap::new();
     for f in findings {
         by_repo.entry(&f.repo_name).or_default().push(f);
@@ -21,11 +20,7 @@ pub fn report(findings: &[Finding], show_summary: bool) -> Result<()> {
 
     for repo_name in repo_names {
         let repo_findings = &by_repo[repo_name];
-        println!(
-            "\n{} {}",
-            "◆ repo:".bold(),
-            repo_name.bold().cyan()
-        );
+        println!("\n{} {}", "◆ repo:".bold(), repo_name.bold().cyan());
 
         for f in repo_findings.iter() {
             let sev = severity_colored(&f.problem.severity);
@@ -73,7 +68,10 @@ fn print_summary(findings: &[Finding]) {
         *counts.entry(f.problem.severity.as_str()).or_insert(0) += 1;
     }
 
-    println!("\n{}", "─── Summary ───────────────────────────────".dimmed());
+    println!(
+        "\n{}",
+        "─── Summary ───────────────────────────────".dimmed()
+    );
     for sev in &["critical", "high", "medium", "low", "info"] {
         if let Some(count) = counts.get(sev) {
             println!("  {} {}", severity_colored(sev), count);
@@ -81,17 +79,23 @@ fn print_summary(findings: &[Finding]) {
     }
     let total_hits: usize = findings.iter().map(|f| f.source_hits.len()).sum();
     if total_hits > 0 {
-        println!("  {} source locations flagged", total_hits.to_string().yellow().bold());
+        println!(
+            "  {} source locations flagged",
+            total_hits.to_string().yellow().bold()
+        );
     }
-    println!("{}", "───────────────────────────────────────────\n".dimmed());
+    println!(
+        "{}",
+        "───────────────────────────────────────────\n".dimmed()
+    );
 }
 
 pub fn severity_colored(sev: &str) -> colored::ColoredString {
     match sev {
         "critical" => format!("[{:8}]", "CRITICAL").red().bold(),
-        "high"     => format!("[{:8}]", "HIGH").red(),
-        "medium"   => format!("[{:8}]", "MEDIUM").yellow(),
-        "low"      => format!("[{:8}]", "LOW").blue(),
-        _          => format!("[{:8}]", "INFO").dimmed(),
+        "high" => format!("[{:8}]", "HIGH").red(),
+        "medium" => format!("[{:8}]", "MEDIUM").yellow(),
+        "low" => format!("[{:8}]", "LOW").blue(),
+        _ => format!("[{:8}]", "INFO").dimmed(),
     }
 }

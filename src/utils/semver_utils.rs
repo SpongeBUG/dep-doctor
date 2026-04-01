@@ -2,18 +2,14 @@ use semver::{Version, VersionReq};
 
 /// Returns true if `version_str` satisfies `range_str`.
 ///
-/// Range string format:
-/// - Single AND range: ">=0.8.1 <1.6.0"  (space between comparators = AND)
-/// - Multi OR range:   ">=0.21.0 <0.21.11,>=0.22.0 <0.22.4"  (comma = OR)
-///
-/// The Rust `semver` crate requires comma-separated comparators for AND,
-/// so we normalise space-separated comparators to comma-separated first.
+/// Range format:
+/// - AND range: ">=0.8.1 <1.6.0"  (space between comparators)
+/// - OR ranges: ">=0.21.0 <0.21.11,>=0.22.0 <0.22.4"  (comma = OR)
 pub fn version_matches_range(version_str: &str, range_str: &str) -> bool {
     let Ok(version) = Version::parse(&normalize_version(version_str)) else {
         return false;
     };
 
-    // Comma separates OR segments; each segment is an AND range.
     for segment in range_str.split(',') {
         let segment = segment.trim();
         if segment.is_empty() {
@@ -33,9 +29,7 @@ pub fn version_matches_range(version_str: &str, range_str: &str) -> bool {
 }
 
 /// Converts space-separated comparators to comma-separated AND conditions.
-///
-/// ">=0.8.1 <1.6.0"  →  ">=0.8.1, <1.6.0"
-/// ">=0.8.1"          →  ">=0.8.1"   (unchanged)
+/// ">=0.8.1 <1.6.0" → ">=0.8.1, <1.6.0"
 fn space_to_comma_and(segment: &str) -> String {
     let comparator_chars = ['>', '<', '=', '~', '^'];
     let mut result = String::with_capacity(segment.len() + 4);
@@ -44,11 +38,9 @@ fn space_to_comma_and(segment: &str) -> String {
         if i == 0 {
             result.push_str(token);
         } else if token.starts_with(comparator_chars) {
-            // New comparator — join with ", " for AND semantics
             result.push_str(", ");
             result.push_str(token);
         } else {
-            // Continuation of the same comparator (e.g. spaced "= 1.0.0")
             result.push(' ');
             result.push_str(token);
         }
@@ -57,7 +49,6 @@ fn space_to_comma_and(segment: &str) -> String {
     result
 }
 
-/// Ensures a version string has at least MAJOR.MINOR.PATCH format.
 fn normalize_version(v: &str) -> String {
     let v = v.trim().trim_start_matches('v');
     let parts: Vec<&str> = v.split('.').collect();
@@ -77,7 +68,10 @@ mod tests {
         assert_eq!(space_to_comma_and(">=0.8.1 <1.6.0"), ">=0.8.1, <1.6.0");
         assert_eq!(space_to_comma_and(">=0.8.1"), ">=0.8.1");
         assert_eq!(space_to_comma_and("<4.17.21"), "<4.17.21");
-        assert_eq!(space_to_comma_and(">=0.21.0 <0.21.11"), ">=0.21.0, <0.21.11");
+        assert_eq!(
+            space_to_comma_and(">=0.21.0 <0.21.11"),
+            ">=0.21.0, <0.21.11"
+        );
     }
 
     #[test]

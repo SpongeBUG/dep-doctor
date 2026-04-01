@@ -19,9 +19,9 @@ fn list(ecosystem: Option<EcosystemArg>) -> Result<()> {
             None => true,
             Some(e) => {
                 let want = match e {
-                    EcosystemArg::Npm   => "npm",
-                    EcosystemArg::Pip   => "pip",
-                    EcosystemArg::Go    => "go",
+                    EcosystemArg::Npm => "npm",
+                    EcosystemArg::Pip => "pip",
+                    EcosystemArg::Go => "go",
                     EcosystemArg::Cargo => "cargo",
                 };
                 p.ecosystem.to_lowercase() == want
@@ -46,7 +46,10 @@ fn list(ecosystem: Option<EcosystemArg>) -> Result<()> {
         );
     }
     println!();
-    println!("Run {} to see details.", "dep-doctor problems show <ID>".cyan());
+    println!(
+        "Run {} to see details.",
+        "dep-doctor problems show <ID>".cyan()
+    );
     Ok(())
 }
 
@@ -60,7 +63,10 @@ fn show(id: &str) -> Result<()> {
         Some(p) => {
             println!("\n{} {}", "●".bold(), p.id.bold().cyan());
             println!("  Title     : {}", p.title);
-            println!("  Severity  : {}", crate::reporter::console::severity_colored(&p.severity));
+            println!(
+                "  Severity  : {}",
+                crate::reporter::console::severity_colored(&p.severity)
+            );
             println!("  Ecosystem : {}", p.ecosystem);
             println!("  Package   : {}", p.package.cyan());
             println!("  Affected  : {}", p.affected_range.yellow());

@@ -62,13 +62,11 @@ jobs:
 
       - name: Rename binary (Unix)
         if: matrix.os != 'windows-latest'
-        run: |
-          cp target/${{ matrix.target }}/release/dep-doctor ${{ matrix.asset_name }}
+        run: cp target/${{ matrix.target }}/release/dep-doctor ${{ matrix.asset_name }}
 
       - name: Rename binary (Windows)
         if: matrix.os == 'windows-latest'
-        run: |
-          Copy-Item "target\${{ matrix.target }}\release\dep-doctor.exe" "${{ matrix.asset_name }}"
+        run: Copy-Item "target\${{ matrix.target }}\release\dep-doctor.exe" "${{ matrix.asset_name }}"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -96,12 +94,14 @@ jobs:
           draft: false
           prerelease: ${{ contains(github.ref_name, '-') }}
 
-  publish-crates:
-    name: Publish to crates.io
-    needs: release
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - name: Publish
-        run: cargo publish --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+  # Uncomment when ready to publish to crates.io:
+  # Add CARGO_REGISTRY_TOKEN to repo secrets first.
+  # publish-crates:
+  #   name: Publish to crates.io
+  #   needs: release
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: dtolnay/rust-toolchain@stable
+  #     - name: Publish
+  #       run: cargo publish --token ${{ secrets.CARGO_REGISTRY_TOKEN }}

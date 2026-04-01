@@ -1,16 +1,13 @@
-use anyhow::Result;
 use regex::Regex;
 use std::path::Path;
 
-use crate::problems::schema::{SourceHit, SourcePattern};
 use crate::deep_scan::context_extractor::extract_context;
+use crate::problems::schema::{SourceHit, SourcePattern};
 
 /// Scan a single file for all provided patterns.
-/// Returns one SourceHit per matching line per pattern.
-pub fn scan_file(path: &Path, patterns: &[SourcePattern]) -> Result<Vec<SourceHit>> {
+pub fn scan_file(path: &Path, patterns: &[SourcePattern]) -> Result<Vec<SourceHit>, anyhow::Error> {
     let content = match std::fs::read_to_string(path) {
         Ok(c) => c,
-        // Skip binary or unreadable files silently
         Err(_) => return Ok(vec![]),
     };
 
@@ -19,7 +16,6 @@ pub fn scan_file(path: &Path, patterns: &[SourcePattern]) -> Result<Vec<SourceHi
 
     for pattern in patterns {
         let Ok(re) = Regex::new(&pattern.regex) else {
-            // Invalid regex in a problem definition — skip, don't crash
             continue;
         };
 

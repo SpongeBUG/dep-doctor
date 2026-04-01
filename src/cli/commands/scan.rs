@@ -2,12 +2,12 @@ use anyhow::Result;
 use indicatif::{ProgressBar, ProgressStyle};
 
 use crate::cli::args::{ReporterArg, ScanArgs};
-use crate::problems::registry::all_problems;
-use crate::reporter::{console, json, markdown};
-use crate::scanner::{repo_finder, version_matcher};
-use crate::scanner::manifest;
 use crate::deep_scan;
+use crate::problems::registry::all_problems;
 use crate::problems::schema::Finding;
+use crate::reporter::{console, json, markdown};
+use crate::scanner::manifest;
+use crate::scanner::{repo_finder, version_matcher};
 
 pub fn run(args: ScanArgs) -> Result<()> {
     let repos = repo_finder::find_repos(&args.path)?;
@@ -29,12 +29,10 @@ pub fn run(args: ScanArgs) -> Result<()> {
 
         if args.deep && !matches.is_empty() {
             for finding in &mut matches {
-                finding.source_hits =
-                    deep_scan::scan_repo(repo, finding.problem)?;
+                finding.source_hits = deep_scan::scan_repo(repo, finding.problem)?;
             }
         }
 
-        // Filter by minimum severity
         let min_sev = args.severity.clone();
         let filtered = matches
             .into_iter()
@@ -57,11 +55,9 @@ pub fn run(args: ScanArgs) -> Result<()> {
 fn build_progress_bar(len: u64) -> ProgressBar {
     let pb = ProgressBar::new(len);
     pb.set_style(
-        ProgressStyle::with_template(
-            "{spinner:.cyan} [{bar:30.cyan/blue}] {pos}/{len} {msg}",
-        )
-        .unwrap()
-        .progress_chars("=>-"),
+        ProgressStyle::with_template("{spinner:.cyan} [{bar:30.cyan/blue}] {pos}/{len} {msg}")
+            .unwrap()
+            .progress_chars("=>-"),
     );
     pb
 }

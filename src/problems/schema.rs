@@ -5,8 +5,8 @@ use serde::{Deserialize, Serialize};
 pub struct Problem {
     pub id: String,
     pub title: String,
-    pub severity: String,   // "critical" | "high" | "medium" | "low" | "info"
-    pub ecosystem: String,  // "npm" | "pip" | "go" | "cargo"
+    pub severity: String,  // "critical" | "high" | "medium" | "low" | "info"
+    pub ecosystem: String, // "npm" | "pip" | "go" | "cargo"
     pub package: String,
     pub affected_range: String,
     pub fixed_in: Option<String>,
@@ -15,14 +15,13 @@ pub struct Problem {
 }
 
 impl Problem {
-    /// Numeric rank for severity comparison (higher = more severe).
     pub fn severity_rank(&self) -> u8 {
         match self.severity.as_str() {
             "critical" => 5,
-            "high"     => 4,
-            "medium"   => 3,
-            "low"      => 2,
-            _          => 1,
+            "high" => 4,
+            "medium" => 3,
+            "low" => 2,
+            _ => 1,
         }
     }
 }
@@ -48,8 +47,6 @@ pub enum Confidence {
     Likely,
     Possible,
 }
-
-// ── Runtime findings ──────────────────────────────────────────────────────────
 
 /// A resolved (repo, package, problem) match.
 #[derive(Debug, Serialize)]

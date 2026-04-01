@@ -3,8 +3,8 @@ pub mod go;
 pub mod npm;
 pub mod pip;
 
-use anyhow::Result;
 use crate::scanner::repo_finder::Repo;
+use anyhow::Result;
 
 /// A resolved package version found inside a repo.
 #[derive(Debug)]

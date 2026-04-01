@@ -1,7 +1,7 @@
-use dep_doctor::cli::args::{Cli, Commands};
-use dep_doctor::cli::commands;
 use anyhow::Result;
 use clap::Parser;
+use dep_doctor::cli::args::{Cli, Commands};
+use dep_doctor::cli::commands;
 
 fn main() -> Result<()> {
     let cli = Cli::parse();

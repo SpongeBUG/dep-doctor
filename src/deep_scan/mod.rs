@@ -2,9 +2,9 @@ pub mod context_extractor;
 pub mod file_walker;
 pub mod pattern_matcher;
 
-use anyhow::Result;
 use crate::problems::schema::{Problem, SourceHit};
 use crate::scanner::repo_finder::Repo;
+use anyhow::Result;
 
 /// Entry point: given a repo and a matched problem, walk source files
 /// and return every line that matches any of the problem's source patterns.
