@@ -1,17 +1,12 @@
 use serde::{Deserialize, Serialize};
 
 /// Whether a problem is a traditional CVE or a supply chain concern.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum ProblemKind {
+    #[default]
     Cve,
     SupplyChain,
-}
-
-impl Default for ProblemKind {
-    fn default() -> Self {
-        ProblemKind::Cve
-    }
 }
 
 /// A known dependency problem (CVE, breaking change, supply chain attack).
