@@ -1,4 +1,5 @@
 use assert_cmd::Command;
+use predicates::prelude::PredicateBooleanExt;
 use predicates::str::contains;
 use std::path::PathBuf;
 
@@ -21,7 +22,11 @@ fn scan_finds_axios_vuln() {
 }
 
 #[test]
-fn scan_finds_no_issues_in_fixed_repo() {
+fn scan_fixed_repo_has_no_built_in_axios_vuln() {
+    // The fixture uses axios 1.8.4 which is beyond the affected range of the
+    // built-in CSRF/SSRF problem. This test verifies the built-in problem is
+    // not reported. The feed may still surface other advisories — that's correct
+    // behaviour and is intentionally not asserted against here.
     let mut cmd = Command::cargo_bin("dep-doctor").unwrap();
     cmd.args([
         "scan",
@@ -29,7 +34,7 @@ fn scan_finds_no_issues_in_fixed_repo() {
     ])
     .assert()
     .success()
-    .stdout(contains("No known problems found"));
+    .stdout(contains("axios-csrf-ssrf-CVE-2023-45857").not());
 }
 
 #[test]
