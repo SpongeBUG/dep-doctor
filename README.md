@@ -29,7 +29,7 @@ npx dep-doctor scan ./my-projects
 
 ### npm global
 ```bash
-npm install -g dep-doctor
+npm install -g @spongebug/dep-doctor
 dep-doctor scan ./my-projects
 ```
 
@@ -70,6 +70,12 @@ dep-doctor scan ./my-projects --reporter json > findings.json
 
 # Output as Markdown report
 dep-doctor scan ./my-projects --reporter markdown -o report.md
+
+# Auto-fix manifests to safe versions
+dep-doctor scan ./my-projects --fix
+
+# Watch mode: re-scan on manifest changes
+dep-doctor scan ./my-projects --watch
 
 # List all known built-in problems
 dep-doctor problems list
@@ -123,12 +129,29 @@ Queries OSV.dev in real time for every package found in your repos — catches C
 
 ---
 
+## GitHub Action
+
+```yaml
+- uses: SpongeBUG/dep-doctor@v1.0.0
+  with:
+    path: .
+    severity: high
+```
+
+See [`action.yml`](action.yml) for all inputs and outputs.
+
+---
+
 ## Environment variables
 
 | Variable | Effect |
 |----------|--------|
 | `DEP_DOCTOR_DEBUG=1` | Enable verbose debug output |
-| `FEED_OUTPUT_PATH` | Override feed output path (used by the harvester CI) |
+| `DEP_DOCTOR_LLM_API_KEY` | API key for `--generate-patterns` |
+| `DEP_DOCTOR_LLM_ENDPOINT` | Override LLM endpoint (default: OpenAI) |
+| `DEP_DOCTOR_LLM_MODEL` | Override LLM model (default: gpt-4o-mini) |
+| `DEP_DOCTOR_LLM_RATE_LIMIT_MS` | Delay between LLM API calls |
+| `FEED_OUTPUT_PATH` | Override feed output path (harvester CI) |
 
 ---
 

@@ -1,6 +1,6 @@
 {
-  "name": "dep-doctor",
-  "version": "1.0.0",
+  "name": "@spongebug/dep-doctor",
+  "version": "1.0.1",
   "description": "Scan repos for known dependency problems and find affected source files",
   "license": "MIT",
   "repository": {
