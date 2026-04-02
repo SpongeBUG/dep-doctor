@@ -6,11 +6,13 @@ use std::collections::HashSet;
 
 use crate::problems::schema::Problem;
 use crate::scanner::manifest::InstalledPackage;
+use crate::{log_debug, log_warn};
 
 /// Query OSV.dev for every unique (ecosystem, name, version) tuple.
 /// Returns additional `Problem` structs to merge with built-in problems.
 pub fn query_packages(packages: &[InstalledPackage]) -> Vec<Problem> {
     let unique = dedup_packages(packages);
+    log_debug!("OSV query: {} unique packages to check", unique.len());
 
     let mut all_problems = Vec::new();
 
@@ -19,11 +21,16 @@ pub fn query_packages(packages: &[InstalledPackage]) -> Vec<Problem> {
 
         // Cache hit?
         if let Some(advisories) = cache::get(&key) {
+            log_debug!(
+                "OSV cache hit: {eco}/{name}@{version} ({} advisories)",
+                advisories.len()
+            );
             all_problems.extend(converter::to_problems(&advisories, eco, name));
             continue;
         }
 
         // Cache miss → query OSV for this single package
+        log_debug!("OSV cache miss: {eco}/{name}@{version} — querying API");
         let query = osv::Query {
             version: version.clone(),
             package: osv::QueryPackage {
@@ -32,16 +39,29 @@ pub fn query_packages(packages: &[InstalledPackage]) -> Vec<Problem> {
             },
         };
 
-        let results = osv::query_batch(&[query]).unwrap_or_default();
-        let advisories = results
-            .into_iter()
-            .flat_map(|r| r.vulns)
-            .collect::<Vec<_>>();
+        let results = match osv::query_batch(&[query]) {
+            Ok(r) => r,
+            Err(e) => {
+                log_warn!("OSV query failed for {eco}/{name}@{version}: {e}");
+                continue;
+            }
+        };
+
+        let advisories: Vec<_> = results.into_iter().flat_map(|r| r.vulns).collect();
+
+        log_debug!(
+            "OSV API returned {} advisories for {eco}/{name}@{version}",
+            advisories.len(),
+        );
 
         cache::set(&key, &advisories);
         all_problems.extend(converter::to_problems(&advisories, eco, name));
     }
 
+    log_debug!(
+        "OSV query complete: {} total problems found",
+        all_problems.len()
+    );
     all_problems
 }
 

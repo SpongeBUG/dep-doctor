@@ -5,8 +5,15 @@
 | v0.2.0 | ✅ DONE | OSV online mode + CVSS mapping |
 | v0.3.0 | ✅ DONE | Nightly harvest CI + feed consumer |
 | v0.4.0 | ✅ DONE | Supply chain attack detection |
-| v0.5.0 | Next | LLM-assisted source pattern generation |
+| v0.5.0 | ✅ DONE | LLM-assisted source pattern generation |
+| v0.6.0 | Next | Feed pagination, polish |
 | v1.0.0 | Backlog | --fix, watch mode, GitHub Action |
+
+## Completed (v0.5.0)
+- LLM pattern generator: `--generate-patterns` flag, OpenAI-compatible API, disk cache, regex validation
+- Debug logging in fetcher: `log_debug!` for cache hits/misses/API calls
+- Zero new dependencies (ureq/serde/regex already present)
+- 10 new unit tests (22 total), 7 integration tests, clippy clean
 
 ## Completed (v0.4.0)
 - Typosquat detector: Levenshtein ≤2 against curated popular-500 package list
@@ -29,7 +36,7 @@
 - Merge + dedup (built-in wins on ID conflict)
 - SEMVER range extraction with exact-version-list fallback
 
-## Next Priorities (v0.5.0)
-1. **LLM-assisted source pattern generation** — use LLM to generate deep-scan regex patterns from CVE descriptions
-2. **Add debug logging to fetcher** — log_debug! for cache hits/misses/API calls
-3. **Feed pagination** — handle OSV querybatch next_page_token for packages with >1000 advisories
+## Next Priorities (v0.6.0)
+1. **Feed pagination** — handle OSV querybatch next_page_token for packages with >1000 advisories
+2. **Rate limiting** — respect LLM API rate limits during pattern generation
+3. **Pattern quality scoring** — track LLM pattern hit rates to identify low-quality patterns

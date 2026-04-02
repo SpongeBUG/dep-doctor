@@ -4,6 +4,7 @@ pub mod deep_scan;
 pub mod feed;
 pub mod fetcher;
 pub mod harvest;
+pub mod llm;
 pub mod problems;
 pub mod reporter;
 pub mod scanner;

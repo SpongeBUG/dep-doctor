@@ -15,7 +15,7 @@ src/
 ├── cli/
 │   ├── args.rs            # ScanArgs, ProblemsArgs, flag enums
 │   └── commands/
-│       └── scan.rs        # Scan orchestrator — 3-layer problem merge
+│       └── scan.rs        # Scan orchestrator — 3-layer problem merge + LLM enrich
 ├── fetcher/               # OSV live query (--online mode)
 │   ├── mod.rs             # query_packages() entry point, dedup, orchestration
 │   ├── osv.rs             # OSV.dev batch API types + HTTP call
@@ -29,6 +29,11 @@ src/
 │   ├── mod.rs
 │   ├── packages.rs        # 349 curated targets (npm/pip/go/cargo)
 │   └── runner.rs          # Downloads OSV ecosystem zips, filters, converts
+├── llm/                   # LLM-assisted source pattern generation (v0.5.0)
+│   ├── mod.rs             # generate_patterns() orchestrator, LlmConfig
+│   ├── prompt.rs          # System/user prompt builder, JSON response parser
+│   ├── client.rs          # OpenAI-compatible chat completion HTTP client
+│   └── cache.rs           # Disk cache (~/.cache/dep-doctor/patterns/), no TTL
 ├── scanner/
 │   ├── repo_finder.rs
 │   ├── manifest/          # npm, pip, go, cargo manifest readers
@@ -48,17 +53,20 @@ src/
 - `Problem` — a known vuln (id, severity, ecosystem, package, affected_range)
 - `Finding<'a>` — a resolved match (repo + package + &Problem + source_hits)
 - `InstalledPackage` — parsed from manifests (ecosystem, name, version)
+- `LlmConfig` — endpoint, api_key, model from env vars
 
-## Scan Flow (v0.3.0)
+## Scan Flow (v0.5.0)
 1. `repo_finder::find_repos()` — discover repos
 2. `manifest::read_all()` — read package.json / requirements.txt / go.mod / Cargo.toml
 3. Problem loading — 3 layers merged in order (built-in wins on ID conflict):
    - Layer 1: `problems::registry::all_problems()` — 4 built-in, always present
    - Layer 2: `feed::load_feed()` — 2,392 problems from nightly feed (default, no flag)
    - Layer 3: `fetcher::query_packages()` — live OSV lookup (only with `--online`)
-4. `version_matcher::match_problems()` — check packages against merged problem set
-5. `deep_scan::scan_repo()` — if `--deep`, regex source patterns
-6. Reporter output (console / JSON / markdown)
+4. **LLM enrichment** (only with `--generate-patterns`):
+   - `llm::generate_patterns()` — check cache → build prompt → call LLM → validate regex → cache
+5. `version_matcher::match_problems()` — check packages against merged problem set
+6. `deep_scan::scan_repo()` — if `--deep` or `--generate-patterns`, regex source patterns
+7. Reporter output (console / JSON / markdown)
 
 ## Nightly Harvest Flow
 1. GitHub Actions runs at 02:00 UTC (`harvest.yml`)
