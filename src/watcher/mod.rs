@@ -83,7 +83,7 @@ mod tests {
         assert!(is_manifest_path(Path::new("/foo/bar/package.json")));
         assert!(is_manifest_path(Path::new("Cargo.toml")));
         assert!(is_manifest_path(Path::new("/a/go.mod")));
-        assert!(is_manifest_path(Path::new("D:\\project\\requirements.txt")));
+        assert!(is_manifest_path(Path::new("/home/user/project/requirements.txt")));
     }
 
     #[test]
