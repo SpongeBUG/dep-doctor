@@ -33,7 +33,7 @@ Thank you for helping make dep-doctor better!
 
 ```bash
 # Requires Rust (https://rustup.rs)
-git clone https://github.com/YOUR_USERNAME/dep-doctor
+git clone https://github.com/SpongeBUG/dep-doctor
 cd dep-doctor
 cargo build
 cargo test
