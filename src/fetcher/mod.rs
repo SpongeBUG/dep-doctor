@@ -29,7 +29,7 @@ pub fn query_packages(packages: &[InstalledPackage]) -> Vec<Problem> {
             continue;
         }
 
-        // Cache miss → query OSV for this single package
+        // Cache miss → query OSV for this single package (with pagination).
         log_debug!("OSV cache miss: {eco}/{name}@{version} — querying API");
         let query = osv::Query {
             version: version.clone(),
@@ -37,6 +37,7 @@ pub fn query_packages(packages: &[InstalledPackage]) -> Vec<Problem> {
                 name: name.clone(),
                 ecosystem: to_osv_ecosystem(eco).to_string(),
             },
+            page_token: None,
         };
 
         let results = match osv::query_batch(&[query]) {

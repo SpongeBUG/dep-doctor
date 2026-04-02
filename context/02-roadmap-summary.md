@@ -6,8 +6,15 @@
 | v0.3.0 | ✅ DONE | Nightly harvest CI + feed consumer |
 | v0.4.0 | ✅ DONE | Supply chain attack detection |
 | v0.5.0 | ✅ DONE | LLM-assisted source pattern generation |
-| v0.6.0 | Next | Feed pagination, polish |
-| v1.0.0 | Backlog | --fix, watch mode, GitHub Action |
+| v0.6.0 | ✅ DONE | Feed pagination, rate limiting, pattern quality |
+| v1.0.0 | Next | --fix, watch mode, GitHub Action |
+
+## Completed (v0.6.0)
+- OSV querybatch pagination: `next_page_token` loop in `query_batch()`, per-query independent tracking, MAX_PAGES=20 safety cap
+- LLM rate limiting: HTTP 429 retry with exponential backoff (2s→4s→8s), `Retry-After` header support, `DEP_DOCTOR_LLM_RATE_LIMIT_MS` inter-request delay
+- Pattern quality scoring: per-problem hit/miss stats, disk persistence, `--pattern-stats` flag with low-quality pattern flagging
+- Extracted `report_findings()` helper in scan.rs for rustfmt stability
+- 9 new tests (31 unit + 7 integration = 38 total), zero new dependencies, clippy clean
 
 ## Completed (v0.5.0)
 - LLM pattern generator: `--generate-patterns` flag, OpenAI-compatible API, disk cache, regex validation
@@ -36,7 +43,7 @@
 - Merge + dedup (built-in wins on ID conflict)
 - SEMVER range extraction with exact-version-list fallback
 
-## Next Priorities (v0.6.0)
-1. **Feed pagination** — handle OSV querybatch next_page_token for packages with >1000 advisories
-2. **Rate limiting** — respect LLM API rate limits during pattern generation
-3. **Pattern quality scoring** — track LLM pattern hit rates to identify low-quality patterns
+## Next Priorities (v1.0.0)
+1. **--fix mode** — auto-update manifests to fixed versions
+2. **Watch mode** — re-scan on file change
+3. **GitHub Action** — pre-built action for CI pipelines

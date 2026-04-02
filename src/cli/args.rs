@@ -17,6 +17,7 @@ use std::path::PathBuf;
                    dep-doctor scan . --online -s high      Live OSV lookup, high+ severity only\n  \
                    dep-doctor scan . -r json -o report.json Export findings as JSON\n  \
                    dep-doctor scan . --deep --generate-patterns  LLM-generated deep-scan patterns\n  \
+                   dep-doctor scan . --deep --pattern-stats Show pattern quality report\n  \
                    dep-doctor problems list                List all known problems\n  \
                    dep-doctor problems list -e npm         List npm problems only\n  \
                    dep-doctor problems show <ID>           Show details for a specific problem"
@@ -42,7 +43,8 @@ pub enum Commands {
                    3. --online    Live OSV.dev batch query per scanned package\n\n\
                    \x1b[1mLLM pattern generation:\x1b[0m\n  \
                    Set DEP_DOCTOR_LLM_API_KEY to enable --generate-patterns.\n  \
-                   Optional: DEP_DOCTOR_LLM_ENDPOINT, DEP_DOCTOR_LLM_MODEL."
+                   Optional: DEP_DOCTOR_LLM_ENDPOINT, DEP_DOCTOR_LLM_MODEL,\n  \
+                   DEP_DOCTOR_LLM_RATE_LIMIT_MS (delay between API calls)."
 )]
 pub struct ScanArgs {
     /// Root folder containing repos to scan
@@ -57,6 +59,11 @@ pub struct ScanArgs {
     /// Requires DEP_DOCTOR_LLM_API_KEY env var. Implies --deep.
     #[arg(long)]
     pub generate_patterns: bool,
+
+    /// Show pattern quality report after scan (hit rates across runs).
+    /// Only meaningful with --deep or --generate-patterns.
+    #[arg(long)]
+    pub pattern_stats: bool,
 
     /// Only scan a specific ecosystem
     #[arg(long, short = 'e', value_enum)]

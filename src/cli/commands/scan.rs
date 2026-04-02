@@ -5,6 +5,7 @@ use indicatif::{ProgressBar, ProgressStyle};
 
 use crate::cli::args::{ReporterArg, ScanArgs};
 use crate::deep_scan;
+use crate::llm::quality::PatternStats;
 use crate::llm::{self, LlmConfig};
 use crate::problems::registry::all_problems;
 use crate::problems::schema::{Finding, Problem};
@@ -44,6 +45,14 @@ pub fn run(args: ScanArgs) -> Result<()> {
         enrich_patterns(&mut problems, config);
     }
 
+    // Load pattern quality stats for recording during deep scan.
+    let track_quality = args.deep_enabled();
+    let mut pattern_stats = if track_quality {
+        llm::quality::load()
+    } else {
+        PatternStats::default()
+    };
+
     let pb = build_progress_bar(repos.len() as u64);
     let mut all_findings: Vec<Finding> = Vec::new();
 
@@ -53,7 +62,7 @@ pub fn run(args: ScanArgs) -> Result<()> {
         let packages = manifest::read_all(repo)?;
         let matches = version_matcher::match_problems(&packages, &problems);
 
-        let mut matches = apply_deep_scan(matches, &args, repo)?;
+        let mut matches = apply_deep_scan(matches, &args, repo, &mut pattern_stats)?;
 
         let min_sev = args.severity.clone();
         matches.retain(|f| f.problem.severity_rank() >= min_sev.rank());
@@ -64,22 +73,40 @@ pub fn run(args: ScanArgs) -> Result<()> {
 
     pb.finish_and_clear();
 
+    // Persist pattern quality stats after scan.
+    if track_quality {
+        llm::quality::save(&pattern_stats);
+    }
+
     // Supply chain: typosquat check on all scanned packages.
     let typosquat_warnings = typosquat::check(&all_repo_packages);
 
+    report_findings(&args, &all_findings, &typosquat_warnings)?;
+
+    // Print pattern quality report if requested.
+    if args.pattern_stats {
+        llm::quality::print_report(&pattern_stats);
+    }
+
+    Ok(())
+}
+
+/// Dispatch to the appropriate reporter.
+fn report_findings(
+    args: &ScanArgs,
+    findings: &[Finding],
+    typosquat_warnings: &[crate::supply_chain::typosquat::TyposquatWarning],
+) -> Result<()> {
     match args.reporter {
-        ReporterArg::Console => console::report(&all_findings, &typosquat_warnings, args.summary()),
-        ReporterArg::Json => {
-            json::report(&all_findings, &typosquat_warnings, args.output.as_deref())
-        }
+        ReporterArg::Console => console::report(findings, typosquat_warnings, args.summary()),
+        ReporterArg::Json => json::report(findings, typosquat_warnings, args.output.as_deref()),
         ReporterArg::Markdown => {
-            markdown::report(&all_findings, &typosquat_warnings, args.output.as_deref())
+            markdown::report(findings, typosquat_warnings, args.output.as_deref())
         }
     }
 }
 
 /// Resolve LLM config when `--generate-patterns` is requested.
-/// Warns and returns `None` if the flag is set but the API key is missing.
 fn resolve_llm_config(args: &ScanArgs) -> Option<LlmConfig> {
     if !args.generate_patterns {
         return None;
@@ -88,9 +115,10 @@ fn resolve_llm_config(args: &ScanArgs) -> Option<LlmConfig> {
     match LlmConfig::from_env() {
         Some(config) => {
             log_debug!(
-                "LLM pattern generation enabled (model={}, endpoint={})",
+                "LLM pattern generation enabled (model={}, endpoint={}, rate_limit={}ms)",
                 config.model,
                 config.endpoint,
+                config.rate_limit_ms,
             );
             Some(config)
         }
@@ -152,15 +180,22 @@ fn merge_problems(
     }
 }
 
-/// Run deep scan if requested and there are findings.
+/// Run deep scan if requested. Records pattern quality stats for each finding.
 fn apply_deep_scan<'a>(
     mut matches: Vec<Finding<'a>>,
     args: &ScanArgs,
     repo: &repo_finder::Repo,
+    stats: &mut PatternStats,
 ) -> Result<Vec<Finding<'a>>> {
     if args.deep_enabled() && !matches.is_empty() {
         for finding in &mut matches {
             finding.source_hits = deep_scan::scan_repo(repo, finding.problem)?;
+
+            // Track quality: only for problems that have patterns to test.
+            if finding.problem.source_patterns.is_some() {
+                let had_hits = !finding.source_hits.is_empty();
+                llm::quality::record(stats, &finding.problem.id, had_hits);
+            }
         }
     }
     Ok(matches)
