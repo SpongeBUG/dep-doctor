@@ -1,4 +1,3 @@
-
 //! Curated top-500 package list for the nightly harvester.
 //! One responsibility: return `(osv_ecosystem, package_name)` pairs.
 
@@ -9,7 +8,10 @@ pub struct HarvestTarget {
 
 impl HarvestTarget {
     const fn new(eco: &'static str, name: &'static str) -> Self {
-        Self { osv_ecosystem: eco, name }
+        Self {
+            osv_ecosystem: eco,
+            name,
+        }
     }
 }
 

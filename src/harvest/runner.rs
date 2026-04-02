@@ -1,4 +1,3 @@
-
 //! Harvest runner — downloads per-ecosystem OSV zip files and filters to
 //! the target package list. Zero per-advisory HTTP calls after the download.
 //!
@@ -19,9 +18,9 @@ use crate::problems::schema::Problem;
 const GCS_BASE: &str = "https://storage.googleapis.com/osv-vulnerabilities";
 
 static ECOSYSTEM_BUCKETS: &[(&str, &str)] = &[
-    ("npm",       "npm"),
-    ("PyPI",      "pip"),
-    ("Go",        "go"),
+    ("npm", "npm"),
+    ("PyPI", "pip"),
+    ("Go", "go"),
     ("crates.io", "cargo"),
 ];
 
@@ -42,7 +41,10 @@ pub fn run_with_progress(targets: &[&HarvestTarget], pb: &ProgressBar) -> Vec<Pr
 
         let pkg_filter = match wanted.get(osv_eco) {
             Some(s) => s,
-            None => { pb.inc(1); continue; }
+            None => {
+                pb.inc(1);
+                continue;
+            }
         };
 
         match process_ecosystem(osv_eco, dep_eco, pkg_filter) {
@@ -106,8 +108,8 @@ fn extract_matching_advisories(
     zip_bytes: &[u8],
     pkg_filter: &HashSet<&str>,
 ) -> Result<Vec<(String, Advisory)>> {
-    let mut archive = zip::ZipArchive::new(Cursor::new(zip_bytes))
-        .context("Failed to open zip archive")?;
+    let mut archive =
+        zip::ZipArchive::new(Cursor::new(zip_bytes)).context("Failed to open zip archive")?;
 
     let mut out = Vec::new();
 

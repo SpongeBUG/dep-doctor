@@ -1,4 +1,3 @@
-
 //! HTTP fetcher for the problems.feed.json from GitHub Releases CDN.
 //! One responsibility: download the feed and return Vec<Problem>.
 
@@ -16,11 +15,12 @@ pub fn fetch() -> Result<Vec<Problem>> {
         .call()
         .context("Failed to fetch problems feed from GitHub Releases")?;
 
-    let text = resp.into_string()
+    let text = resp
+        .into_string()
         .context("Failed to read feed response body")?;
 
-    let problems: Vec<Problem> = serde_json::from_str(&text)
-        .context("Failed to parse problems feed JSON")?;
+    let problems: Vec<Problem> =
+        serde_json::from_str(&text).context("Failed to parse problems feed JSON")?;
 
     Ok(problems)
 }

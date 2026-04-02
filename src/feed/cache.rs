@@ -1,4 +1,3 @@
-
 //! Feed disk cache: ~/.cache/dep-doctor/problems.feed.json with 24h TTL.
 //! One responsibility: read/write the feed JSON to/from disk.
 
@@ -23,9 +22,15 @@ pub fn feed_path() -> Option<PathBuf> {
 
 /// Returns true if the cached feed exists and is younger than 24h.
 pub fn is_fresh() -> bool {
-    let Some(path) = feed_path() else { return false };
-    let Ok(meta) = fs::metadata(&path) else { return false };
-    let Ok(modified) = meta.modified() else { return false };
+    let Some(path) = feed_path() else {
+        return false;
+    };
+    let Ok(meta) = fs::metadata(&path) else {
+        return false;
+    };
+    let Ok(modified) = meta.modified() else {
+        return false;
+    };
     SystemTime::now()
         .duration_since(modified)
         .map(|age| age < FEED_TTL)
@@ -41,11 +46,15 @@ pub fn load() -> Option<Vec<Problem>> {
 
 /// Persist problems to the cache directory. Silently ignores write errors.
 pub fn save(problems: &[Problem]) {
-    let Some(dir) = cache_dir() else { return };
+    let Some(dir) = cache_dir() else {
+        return;
+    };
     if fs::create_dir_all(&dir).is_err() {
         return;
     }
-    let Some(path) = feed_path() else { return };
+    let Some(path) = feed_path() else {
+        return;
+    };
     if let Ok(json) = serde_json::to_string(problems) {
         let _ = fs::write(path, json);
     }

@@ -1,4 +1,3 @@
-
 //! Harvester binary — downloads OSV ecosystem zips and writes problems.feed.json.
 //! Run with: cargo run --bin harvest
 
@@ -38,14 +37,9 @@ fn output_path() -> PathBuf {
         .unwrap_or_else(|_| PathBuf::from("problems.feed.json"))
 }
 
-fn write_feed(
-    problems: &[dep_doctor::problems::schema::Problem],
-    path: &PathBuf,
-) -> Result<()> {
-    let json = serde_json::to_string_pretty(problems)
-        .context("Failed to serialize problems")?;
-    fs::write(path, json)
-        .with_context(|| format!("Failed to write feed to {}", path.display()))?;
+fn write_feed(problems: &[dep_doctor::problems::schema::Problem], path: &PathBuf) -> Result<()> {
+    let json = serde_json::to_string_pretty(problems).context("Failed to serialize problems")?;
+    fs::write(path, json).with_context(|| format!("Failed to write feed to {}", path.display()))?;
     Ok(())
 }
 

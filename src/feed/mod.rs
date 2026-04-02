@@ -1,4 +1,3 @@
-
 //! Feed public API: load_feed() returns a Vec<Problem>.
 //!
 //! Resolution order:

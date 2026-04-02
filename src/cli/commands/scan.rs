@@ -1,4 +1,3 @@
-
 use std::collections::HashSet;
 
 use anyhow::Result;
@@ -62,7 +61,10 @@ pub fn run(args: ScanArgs) -> Result<()> {
 }
 
 /// Merge `incoming` into `base`, skipping any ID already present (base wins).
-fn merge_problems(base: &mut Vec<crate::problems::schema::Problem>, incoming: Vec<crate::problems::schema::Problem>) {
+fn merge_problems(
+    base: &mut Vec<crate::problems::schema::Problem>,
+    incoming: Vec<crate::problems::schema::Problem>,
+) {
     let existing_ids: HashSet<String> = base.iter().map(|p| p.id.clone()).collect();
     for p in incoming {
         if !existing_ids.contains(&p.id) {
