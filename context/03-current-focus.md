@@ -1,30 +1,29 @@
 # dep-doctor — Current Focus
 
-## v0.6.0 — ✅ SHIPPED
+## v1.0.0 — ✅ SHIPPED
 
-Feed pagination + rate limiting + pattern quality scoring:
+### Feature 1: --fix mode
+- `src/fixer/mod.rs` — NEW: `apply_fixes()` orchestrator, `FixResult` type, `print_summary()` colored output
+- `src/fixer/npm.rs` — NEW: text-based package.json version replacement, preserves ^/~ prefixes
+- `src/fixer/pip.rs` — NEW: requirements.txt + pyproject.toml fixer, ==, ~=, >= operators, hyphen/underscore normalization
+- `src/fixer/go.rs` — NEW: go.mod fixer, block + single-line require, preserves // indirect, auto v-prefix
+- `src/fixer/cargo.rs` — NEW: Cargo.toml fixer, simple + table form, preserves features/other keys
+- `src/cli/args.rs` — Added `--fix` flag
+- `src/cli/commands/scan.rs` — Calls fixer after reporting when `--fix` is set
+- 25 new unit tests across fixer module
 
-### Feature 1: OSV Feed Pagination
-- `src/fetcher/osv.rs` — `Query.page_token`, `QueryResult.next_page_token`, pagination loop in `query_batch()` with `send_batch()` helper, MAX_PAGES=20 safety cap
-- `src/fetcher/mod.rs` — Updated Query construction with `page_token: None`
-- 4 new unit tests: token serialization, response parsing, empty input
+### Feature 2: --watch mode
+- `src/watcher/mod.rs` — NEW: `watch_loop()` with notify + debouncer, manifest file filter, 500ms debounce
+- `src/cli/args.rs` — Added `--watch` / `-w` flag
+- `src/cli/commands/scan.rs` — Refactored `run()` → `run_once()`, watch loop calls `run_once()` on change
+- `Cargo.toml` — Added `notify = "7"`, `notify-debouncer-mini = "0.5"`
+- 2 new unit tests (manifest path recognition)
 
-### Feature 2: LLM Rate Limiting
-- `src/llm/client.rs` — Retry-on-429 with exponential backoff (2s→4s→8s), respects `Retry-After` header
-- `src/llm/mod.rs` — `DEP_DOCTOR_LLM_RATE_LIMIT_MS` env var for inter-request delay, `LlmConfig.rate_limit_ms` field
-- 1 new unit test: backoff calculation
-
-### Feature 3: Pattern Quality Scoring
-- `src/llm/quality.rs` — NEW: `PatternStats`/`ProblemPatternStats` with hit/miss tracking, disk persistence at `~/.cache/dep-doctor/pattern-stats.json`, `print_report()` with low-quality flagging
-- `src/cli/commands/scan.rs` — Quality stats loaded/saved around scan, recorded per-finding in `apply_deep_scan()`, extracted `report_findings()` helper
-- `src/cli/args.rs` — `--pattern-stats` flag
-- 4 new unit tests: record tracking, hit rate math, serialization roundtrip
+### Feature 3: GitHub Action
+- `action.yml` — NEW: composite action, inputs (path/severity/online/fix/deep/reporter/version), outputs (findings_count/exit_code), auto-downloads release binary
 
 ### Housekeeping
-- `Cargo.toml` — Version bump to 0.6.0
-- Zero new dependencies
-- All verified: cargo fmt + build + test (31 unit + 7 integration = 38 total) + clippy zero warnings
-
-## Task 1: v1.0.0 — --fix, watch mode, GitHub Action
-**Status:** Not started
-**See:** ROADMAP.md → v1.0.0
+- `Cargo.toml` — Version bump to 1.0.0
+- `src/lib.rs` — Added `pub mod fixer;`, `pub mod watcher;`
+- 2 new dependencies: notify, notify-debouncer-mini
+- All verified: cargo fmt + build + test (58 unit + 7 integration = 65 total) + clippy zero warnings

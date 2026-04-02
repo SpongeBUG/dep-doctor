@@ -39,11 +39,19 @@ src/
 │   ├── repo_finder.rs
 │   ├── manifest/          # npm, pip, go, cargo manifest readers
 │   └── version_matcher.rs
+├── fixer/                 # --fix mode: manifest version updaters (v1.0)
+│   ├── mod.rs             # apply_fixes() orchestrator, FixResult, print_summary()
+│   ├── npm.rs             # package.json version replacement
+│   ├── pip.rs             # requirements.txt + pyproject.toml fixer
+│   ├── go.rs              # go.mod require line fixer
+│   └── cargo.rs           # Cargo.toml dependency version fixer
 ├── deep_scan/             # Source-level regex pattern matching
 ├── problems/
 │   ├── schema.rs          # Problem, Finding, SourceHit structs
 │   └── registry.rs        # 4 built-in problems
 ├── reporter/              # console, json, markdown output
+├── watcher/               # --watch mode: file system watcher (v1.0)
+│   └── mod.rs             # watch_loop() with notify debouncer, manifest filter
 └── utils/
     ├── semver_utils.rs    # Range matching, space_to_comma_and (pub)
     ├── logger.rs          # log_debug!, log_warn! macros
@@ -57,7 +65,7 @@ src/
 - `LlmConfig` — endpoint, api_key, model, rate_limit_ms from env vars
 - `PatternStats` — per-problem pattern hit/miss counts across runs (v0.6)
 
-## Scan Flow (v0.6.0)
+## Scan Flow (v1.0.0)
 1. `repo_finder::find_repos()` — discover repos
 2. `manifest::read_all()` — read package.json / requirements.txt / go.mod / Cargo.toml
 3. Problem loading — 3 layers merged in order (built-in wins on ID conflict):
@@ -70,9 +78,11 @@ src/
 6. `deep_scan::scan_repo()` — if `--deep` or `--generate-patterns`, regex source patterns
    - Records pattern hit/miss in `PatternStats` for quality tracking
 7. Reporter output (console / JSON / markdown)
-8. **Pattern quality report** (with `--pattern-stats`): hit rates, low-quality flagging
+8. **Auto-fix** (only with `--fix`): `fixer::apply_fixes()` edits manifests in-place to `fixed_in` versions
+9. **Pattern quality report** (with `--pattern-stats`): hit rates, low-quality flagging
+10. **Watch loop** (only with `--watch`): enter `watcher::watch_loop()`, re-run steps 1-9 on manifest change
 
-## Environment Variables (v0.6.0)
+## Environment Variables (v1.0.0)
 - `DEP_DOCTOR_DEBUG` — enable debug logging to stderr
 - `DEP_DOCTOR_LLM_API_KEY` — required for `--generate-patterns`
 - `DEP_DOCTOR_LLM_ENDPOINT` — override default OpenAI endpoint

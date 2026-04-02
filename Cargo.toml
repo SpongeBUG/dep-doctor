@@ -1,6 +1,6 @@
 [package]
 name = "dep-doctor"
-version = "0.6.0"
+version = "1.0.0"
 edition = "2021"
 description = "Scan repos for known dependency problems and find affected source files"
 license = "MIT"
@@ -38,6 +38,8 @@ rayon = "1"
 glob = "0.3"
 ureq = "2"
 dirs = "5"
+notify = "7"
+notify-debouncer-mini = "0.5"
 zip = { version = "2", default-features = false, features = ["deflate"] }
 
 [dev-dependencies]

@@ -7,7 +7,7 @@
 | v0.4.0 | ✅ DONE | Supply chain attack detection |
 | v0.5.0 | ✅ DONE | LLM-assisted source pattern generation |
 | v0.6.0 | ✅ DONE | Feed pagination, rate limiting, pattern quality |
-| v1.0.0 | Next | --fix, watch mode, GitHub Action |
+| v1.0.0 | ✅ DONE | --fix, watch mode, GitHub Action |
 
 ## Completed (v0.6.0)
 - OSV querybatch pagination: `next_page_token` loop in `query_batch()`, per-query independent tracking, MAX_PAGES=20 safety cap
@@ -43,7 +43,9 @@
 - Merge + dedup (built-in wins on ID conflict)
 - SEMVER range extraction with exact-version-list fallback
 
-## Next Priorities (v1.0.0)
-1. **--fix mode** — auto-update manifests to fixed versions
-2. **Watch mode** — re-scan on file change
-3. **GitHub Action** — pre-built action for CI pipelines
+## Completed (v1.0.0)
+- `--fix` mode: auto-update manifests to fixed versions (npm/pip/go/cargo), text-based replacement preserving formatting
+- `--watch` / `-w` mode: re-scan on manifest file change via notify + 500ms debounce, Ctrl+C to exit
+- GitHub Action: composite action.yml with platform auto-detect, inputs/outputs, release binary download
+- Refactored scan.rs: `run()` → `run_once()` for watch reuse
+- 27 new tests (58 unit + 7 integration = 65 total), 2 new dependencies (notify, notify-debouncer-mini), clippy clean

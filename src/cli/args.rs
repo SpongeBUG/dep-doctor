@@ -18,6 +18,8 @@ use std::path::PathBuf;
                    dep-doctor scan . -r json -o report.json Export findings as JSON\n  \
                    dep-doctor scan . --deep --generate-patterns  LLM-generated deep-scan patterns\n  \
                    dep-doctor scan . --deep --pattern-stats Show pattern quality report\n  \
+                   dep-doctor scan . --fix                  Auto-fix manifests to safe versions\n  \
+                   dep-doctor scan . --watch                Watch manifests and re-scan on change\n  \
                    dep-doctor problems list                List all known problems\n  \
                    dep-doctor problems list -e npm         List npm problems only\n  \
                    dep-doctor problems show <ID>           Show details for a specific problem"
@@ -64,6 +66,15 @@ pub struct ScanArgs {
     /// Only meaningful with --deep or --generate-patterns.
     #[arg(long)]
     pub pattern_stats: bool,
+
+    /// Auto-fix: update manifest files to fixed versions where known.
+    /// Edits package.json, requirements.txt, go.mod, Cargo.toml in-place.
+    #[arg(long)]
+    pub fix: bool,
+
+    /// Watch mode: re-scan on manifest file changes. Press Ctrl+C to exit.
+    #[arg(long, short = 'w')]
+    pub watch: bool,
 
     /// Only scan a specific ecosystem
     #[arg(long, short = 'e', value_enum)]

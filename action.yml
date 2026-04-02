@@ -1,0 +1,112 @@
+name: "dep-doctor"
+description: "Scan dependencies for known vulnerabilities, supply chain attacks, and typosquatted packages"
+author: "SpongeBUG"
+
+branding:
+  icon: "shield"
+  color: "blue"
+
+inputs:
+  path:
+    description: "Root folder to scan (default: current directory)"
+    required: false
+    default: "."
+  severity:
+    description: "Minimum severity to report: info, low, medium, high, critical"
+    required: false
+    default: "low"
+  online:
+    description: "Query OSV.dev for real-time data (adds latency)"
+    required: false
+    default: "false"
+  fix:
+    description: "Auto-update manifests to fixed versions"
+    required: false
+    default: "false"
+  reporter:
+    description: "Output format: console, json, markdown"
+    required: false
+    default: "console"
+  deep:
+    description: "Deep scan source files for vulnerable usage patterns"
+    required: false
+    default: "false"
+  version:
+    description: "dep-doctor version to install (default: latest)"
+    required: false
+    default: "latest"
+
+outputs:
+  findings_count:
+    description: "Number of findings detected"
+    value: ${{ steps.scan.outputs.findings_count }}
+  exit_code:
+    description: "Exit code from dep-doctor (0 = clean, 1 = findings)"
+    value: ${{ steps.scan.outputs.exit_code }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install dep-doctor
+      shell: bash
+      run: |
+        set -euo pipefail
+        VERSION="${{ inputs.version }}"
+        REPO="SpongeBUG/dep-doctor"
+
+        if [ "$VERSION" = "latest" ]; then
+          DOWNLOAD_URL="https://github.com/${REPO}/releases/latest/download"
+        else
+          DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${VERSION}"
+        fi
+
+        OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
+        ARCH="$(uname -m)"
+
+        case "${OS}-${ARCH}" in
+          linux-x86_64)   BINARY="dep-doctor-linux-amd64" ;;
+          linux-aarch64)   BINARY="dep-doctor-linux-arm64" ;;
+          darwin-x86_64)   BINARY="dep-doctor-macos-amd64" ;;
+          darwin-arm64)    BINARY="dep-doctor-macos-arm64" ;;
+          *)               echo "::error::Unsupported platform: ${OS}-${ARCH}"; exit 1 ;;
+        esac
+
+        curl -fsSL "${DOWNLOAD_URL}/${BINARY}" -o /usr/local/bin/dep-doctor
+        chmod +x /usr/local/bin/dep-doctor
+        echo "Installed dep-doctor (${VERSION}) for ${OS}-${ARCH}"
+
+    - name: Run scan
+      id: scan
+      shell: bash
+      run: |
+        set -uo pipefail
+
+        ARGS="scan ${{ inputs.path }}"
+        ARGS="${ARGS} -s ${{ inputs.severity }}"
+        ARGS="${ARGS} -r ${{ inputs.reporter }}"
+
+        if [ "${{ inputs.online }}" = "true" ]; then
+          ARGS="${ARGS} --online"
+        fi
+        if [ "${{ inputs.fix }}" = "true" ]; then
+          ARGS="${ARGS} --fix"
+        fi
+        if [ "${{ inputs.deep }}" = "true" ]; then
+          ARGS="${ARGS} --deep"
+        fi
+
+        # Run scan, capture exit code without failing the step.
+        dep-doctor ${ARGS} | tee /tmp/dep-doctor-output.txt
+        EXIT_CODE=${PIPESTATUS[0]}
+
+        # Count findings from output (lines containing severity indicators).
+        FINDINGS=$(grep -cE '\[(CRITICAL|HIGH|MEDIUM|LOW|INFO)\]' /tmp/dep-doctor-output.txt || echo "0")
+
+        echo "exit_code=${EXIT_CODE}" >> "$GITHUB_OUTPUT"
+        echo "findings_count=${FINDINGS}" >> "$GITHUB_OUTPUT"
+
+        if [ "${EXIT_CODE}" -ne 0 ]; then
+          echo "::warning::dep-doctor found ${FINDINGS} finding(s)"
+        fi
+
+        exit ${EXIT_CODE}

@@ -16,6 +16,23 @@ use crate::supply_chain::typosquat;
 use crate::{log_debug, log_warn};
 
 pub fn run(args: ScanArgs) -> Result<()> {
+    // Run the initial scan.
+    run_once(&args)?;
+
+    // Enter watch loop if requested.
+    if args.watch {
+        crate::watcher::watch_loop(&args.path, || {
+            if let Err(e) = run_once(&args) {
+                eprintln!("Scan error: {e}");
+            }
+        })?;
+    }
+
+    Ok(())
+}
+
+/// Execute a single scan pass. Called once normally, or repeatedly in watch mode.
+fn run_once(args: &ScanArgs) -> Result<()> {
     let repos = repo_finder::find_repos(&args.path)?;
 
     if repos.is_empty() {
@@ -24,7 +41,7 @@ pub fn run(args: ScanArgs) -> Result<()> {
     }
 
     // Resolve LLM config early so we can warn before the scan starts.
-    let llm_config = resolve_llm_config(&args);
+    let llm_config = resolve_llm_config(args);
 
     // Layer 1: built-in problems (always present).
     let mut problems = all_problems();
@@ -62,7 +79,7 @@ pub fn run(args: ScanArgs) -> Result<()> {
         let packages = manifest::read_all(repo)?;
         let matches = version_matcher::match_problems(&packages, &problems);
 
-        let mut matches = apply_deep_scan(matches, &args, repo, &mut pattern_stats)?;
+        let mut matches = apply_deep_scan(matches, args, repo, &mut pattern_stats)?;
 
         let min_sev = args.severity.clone();
         matches.retain(|f| f.problem.severity_rank() >= min_sev.rank());
@@ -81,7 +98,13 @@ pub fn run(args: ScanArgs) -> Result<()> {
     // Supply chain: typosquat check on all scanned packages.
     let typosquat_warnings = typosquat::check(&all_repo_packages);
 
-    report_findings(&args, &all_findings, &typosquat_warnings)?;
+    report_findings(args, &all_findings, &typosquat_warnings)?;
+
+    // Auto-fix manifests if requested.
+    if args.fix && !all_findings.is_empty() {
+        let fix_results = crate::fixer::apply_fixes(&all_findings);
+        crate::fixer::print_summary(&fix_results);
+    }
 
     // Print pattern quality report if requested.
     if args.pattern_stats {
