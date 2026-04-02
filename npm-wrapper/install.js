@@ -9,7 +9,9 @@
 const fs = require("fs");
 const https = require("https");
 const path = require("path");
-const { version } = require("./package.json");
+// Binary version tracks the GitHub Release tag, which may differ from
+// the npm package version (e.g. npm 1.0.1 readme fix still uses binary v1.0.0).
+const BINARY_VERSION = "1.0.0";
 
 const REPO = "SpongeBUG/dep-doctor";
 const BIN_DIR = path.join(__dirname, "bin");
@@ -54,7 +56,7 @@ async function main() {
   if (fs.existsSync(BIN_PATH)) return;
 
   const asset = getAssetName();
-  const url = `https://github.com/${REPO}/releases/download/v${version}/${asset}`;
+  const url = `https://github.com/${REPO}/releases/download/v${BINARY_VERSION}/${asset}`;
 
   console.log(`dep-doctor: downloading binary for ${process.platform}/${process.arch}...`);
   fs.mkdirSync(BIN_DIR, { recursive: true });
