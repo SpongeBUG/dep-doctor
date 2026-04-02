@@ -2,14 +2,35 @@ use anyhow::Result;
 use colored::Colorize;
 use std::collections::HashMap;
 
-use crate::problems::schema::Finding;
+use crate::problems::schema::{Finding, ProblemKind};
+use crate::supply_chain::typosquat::TyposquatWarning;
 
-pub fn report(findings: &[Finding], show_summary: bool) -> Result<()> {
-    if findings.is_empty() {
+pub fn report(
+    findings: &[Finding],
+    typosquat_warnings: &[TyposquatWarning],
+    show_summary: bool,
+) -> Result<()> {
+    if findings.is_empty() && typosquat_warnings.is_empty() {
         println!("{}", "\n✓ No known problems found.\n".green().bold());
         return Ok(());
     }
 
+    if !findings.is_empty() {
+        print_findings(findings);
+    }
+
+    if !typosquat_warnings.is_empty() {
+        print_typosquat_warnings(typosquat_warnings);
+    }
+
+    if show_summary {
+        print_summary(findings, typosquat_warnings);
+    }
+
+    Ok(())
+}
+
+fn print_findings(findings: &[Finding]) {
     let mut by_repo: HashMap<&str, Vec<&Finding>> = HashMap::new();
     for f in findings {
         by_repo.entry(&f.repo_name).or_default().push(f);
@@ -23,10 +44,10 @@ pub fn report(findings: &[Finding], show_summary: bool) -> Result<()> {
         println!("\n{} {}", "◆ repo:".bold(), repo_name.bold().cyan());
 
         for f in repo_findings.iter() {
-            let sev = severity_colored(&f.problem.severity);
+            let label = kind_label(f);
             println!(
                 "  {} {} {} @ {} {} {}",
-                sev,
+                label,
                 f.problem.id.bold(),
                 f.package.cyan(),
                 f.installed_version.yellow(),
@@ -54,15 +75,23 @@ pub fn report(findings: &[Finding], show_summary: bool) -> Result<()> {
             }
         }
     }
-
-    if show_summary {
-        print_summary(findings);
-    }
-
-    Ok(())
 }
 
-fn print_summary(findings: &[Finding]) {
+fn print_typosquat_warnings(warnings: &[TyposquatWarning]) {
+    println!("\n{}", "⚠ Possible typosquats detected".yellow().bold());
+    for w in warnings {
+        println!(
+            "  {} {} looks like {} (edit distance {}, ecosystem: {})",
+            "⚠".yellow(),
+            w.scanned_name.red().bold(),
+            w.similar_to.cyan().bold(),
+            w.edit_distance,
+            w.ecosystem.dimmed()
+        );
+    }
+}
+
+fn print_summary(findings: &[Finding], typosquat_warnings: &[TyposquatWarning]) {
     let mut counts: HashMap<&str, usize> = HashMap::new();
     for f in findings {
         *counts.entry(f.problem.severity.as_str()).or_insert(0) += 1;
@@ -77,6 +106,23 @@ fn print_summary(findings: &[Finding]) {
             println!("  {} {}", severity_colored(sev), count);
         }
     }
+
+    let supply_chain_count = findings
+        .iter()
+        .filter(|f| f.problem.kind == ProblemKind::SupplyChain)
+        .count();
+    if supply_chain_count > 0 {
+        println!("  {} {}", "[SUPPLY CHAIN]".red().bold(), supply_chain_count);
+    }
+
+    if !typosquat_warnings.is_empty() {
+        println!(
+            "  {} {} possible typosquat(s)",
+            "⚠".yellow().bold(),
+            typosquat_warnings.len()
+        );
+    }
+
     let total_hits: usize = findings.iter().map(|f| f.source_hits.len()).sum();
     if total_hits > 0 {
         println!(
@@ -88,6 +134,14 @@ fn print_summary(findings: &[Finding]) {
         "{}",
         "───────────────────────────────────────────\n".dimmed()
     );
+}
+
+/// Render severity or supply-chain label for a finding.
+fn kind_label(finding: &Finding) -> colored::ColoredString {
+    match finding.problem.kind {
+        ProblemKind::SupplyChain => "[SUPPLY CHAIN]".red().bold(),
+        ProblemKind::Cve => severity_colored(&finding.problem.severity),
+    }
 }
 
 pub fn severity_colored(sev: &str) -> colored::ColoredString {

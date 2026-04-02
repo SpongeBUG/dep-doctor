@@ -1,4 +1,4 @@
-use crate::problems::schema::{Confidence, Problem, SourcePattern, SourcePatternSet};
+use crate::problems::schema::{Confidence, Problem, ProblemKind, SourcePattern, SourcePatternSet};
 
 pub fn problem() -> Problem {
     Problem {
@@ -13,6 +13,7 @@ pub fn problem() -> Problem {
             "https://nvd.nist.gov/vuln/detail/CVE-2023-32681".into(),
             "https://github.com/psf/requests/security/advisories/GHSA-j8r2-6x86-q33q".into(),
         ],
+        kind: ProblemKind::Cve,
         source_patterns: Some(SourcePatternSet {
             languages: vec!["py".into()],
             patterns: vec![

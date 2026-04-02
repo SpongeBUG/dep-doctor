@@ -1,4 +1,4 @@
-use crate::problems::schema::{Confidence, Problem, SourcePattern, SourcePatternSet};
+use crate::problems::schema::{Confidence, Problem, ProblemKind, SourcePattern, SourcePatternSet};
 
 pub fn problem() -> Problem {
     Problem {
@@ -13,6 +13,7 @@ pub fn problem() -> Problem {
             "https://nvd.nist.gov/vuln/detail/CVE-2019-10744".into(),
             "https://github.com/advisories/GHSA-jf85-cpcp-j695".into(),
         ],
+        kind: ProblemKind::Cve,
         source_patterns: Some(SourcePatternSet {
             languages: vec!["js".into(), "ts".into()],
             patterns: vec![

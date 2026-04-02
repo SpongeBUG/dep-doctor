@@ -7,4 +7,5 @@ pub mod harvest;
 pub mod problems;
 pub mod reporter;
 pub mod scanner;
+pub mod supply_chain;
 pub mod utils;

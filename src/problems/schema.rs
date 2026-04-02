@@ -1,17 +1,33 @@
 use serde::{Deserialize, Serialize};
 
-/// A known dependency problem (CVE, breaking change, bug).
+/// Whether a problem is a traditional CVE or a supply chain concern.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum ProblemKind {
+    Cve,
+    SupplyChain,
+}
+
+impl Default for ProblemKind {
+    fn default() -> Self {
+        ProblemKind::Cve
+    }
+}
+
+/// A known dependency problem (CVE, breaking change, supply chain attack).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Problem {
     pub id: String,
     pub title: String,
-    pub severity: String,  // "critical" | "high" | "medium" | "low" | "info"
-    pub ecosystem: String, // "npm" | "pip" | "go" | "cargo"
+    pub severity: String,
+    pub ecosystem: String,
     pub package: String,
     pub affected_range: String,
     pub fixed_in: Option<String>,
     pub references: Vec<String>,
     pub source_patterns: Option<SourcePatternSet>,
+    #[serde(default)]
+    pub kind: ProblemKind,
 }
 
 impl Problem {

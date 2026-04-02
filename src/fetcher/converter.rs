@@ -1,5 +1,5 @@
 use crate::fetcher::osv::Advisory;
-use crate::problems::schema::Problem;
+use crate::problems::schema::{Problem, ProblemKind};
 use crate::utils::semver_utils::space_to_comma_and;
 
 /// Convert a list of OSV advisories into dep-doctor `Problem` structs.
@@ -13,6 +13,13 @@ pub fn to_problems(advisories: &[Advisory], ecosystem: &str, package: &str) -> V
 fn convert_one(adv: &Advisory, ecosystem: &str, package: &str) -> Option<Problem> {
     let affected_range = extract_range(adv)?;
     let severity = cvss_to_severity(extract_cvss(adv));
+    let normalized = normalize_ecosystem(ecosystem);
+
+    let kind = if normalized == "malicious" {
+        ProblemKind::SupplyChain
+    } else {
+        ProblemKind::Cve
+    };
 
     let references = adv
         .references
@@ -24,12 +31,13 @@ fn convert_one(adv: &Advisory, ecosystem: &str, package: &str) -> Option<Problem
         id: adv.id.clone(),
         title: adv.summary.clone().unwrap_or_else(|| adv.id.clone()),
         severity,
-        ecosystem: normalize_ecosystem(ecosystem).to_string(),
+        ecosystem: normalized.to_string(),
         package: package.to_string(),
         affected_range,
         fixed_in: extract_fixed_version(adv),
         references,
         source_patterns: None,
+        kind,
     })
 }
 
@@ -48,7 +56,6 @@ fn extract_range(adv: &Advisory) -> Option<String> {
             return Some(semver_ranges.join(","));
         }
 
-        // Fallback: exact version list → "=X, =Y, =Z"
         if !affected.versions.is_empty() {
             let exact = affected
                 .versions
@@ -60,7 +67,7 @@ fn extract_range(adv: &Advisory) -> Option<String> {
         }
     }
 
-    None // no usable range data → skip this advisory
+    None
 }
 
 /// Convert a single SEMVER range (introduced..fixed) to a range string.
@@ -108,12 +115,9 @@ fn extract_cvss(adv: &Advisory) -> Option<f64> {
 
 /// Extract the numeric base score from a CVSS vector or plain number.
 fn parse_cvss_score(raw: &str) -> Option<f64> {
-    // Plain number: "7.5"
     if let Ok(n) = raw.parse::<f64>() {
         return Some(n);
     }
-    // CVSS vector: "CVSS:3.1/AV:N/.../S:7.5" — score is usually not
-    // embedded this way, but handle any trailing float after '/'.
     raw.rsplit('/').find_map(|part| part.parse::<f64>().ok())
 }
 
@@ -123,7 +127,7 @@ fn cvss_to_severity(score: Option<f64>) -> String {
         Some(s) if s >= 7.0 => "high",
         Some(s) if s >= 4.0 => "medium",
         Some(s) if s > 0.0 => "low",
-        _ => "medium", // missing score → safe default
+        _ => "medium",
     }
     .to_string()
 }
@@ -135,6 +139,7 @@ fn normalize_ecosystem(eco: &str) -> &str {
         "PyPI" => "pip",
         "Go" => "go",
         "crates.io" => "cargo",
+        "malicious" => "malicious",
         other => other,
     }
 }

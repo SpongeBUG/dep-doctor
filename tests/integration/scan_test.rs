@@ -98,5 +98,7 @@ fn json_reporter_outputs_valid_json() {
 
     let parsed: serde_json::Value =
         serde_json::from_slice(&output).expect("output should be valid JSON");
-    assert!(parsed.is_array());
+    assert!(parsed.is_object());
+    assert!(parsed.get("findings").unwrap().is_array());
+    assert!(parsed.get("typosquat_warnings").unwrap().is_array());
 }

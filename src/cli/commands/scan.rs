@@ -10,6 +10,7 @@ use crate::problems::schema::Finding;
 use crate::reporter::{console, json, markdown};
 use crate::scanner::manifest;
 use crate::scanner::{repo_finder, version_matcher};
+use crate::supply_chain::typosquat;
 
 pub fn run(args: ScanArgs) -> Result<()> {
     let repos = repo_finder::find_repos(&args.path)?;
@@ -53,10 +54,17 @@ pub fn run(args: ScanArgs) -> Result<()> {
 
     pb.finish_and_clear();
 
+    // Supply chain: typosquat check on all scanned packages.
+    let typosquat_warnings = typosquat::check(&all_repo_packages);
+
     match args.reporter {
-        ReporterArg::Console => console::report(&all_findings, args.summary),
-        ReporterArg::Json => json::report(&all_findings, args.output.as_deref()),
-        ReporterArg::Markdown => markdown::report(&all_findings, args.output.as_deref()),
+        ReporterArg::Console => console::report(&all_findings, &typosquat_warnings, args.summary),
+        ReporterArg::Json => {
+            json::report(&all_findings, &typosquat_warnings, args.output.as_deref())
+        }
+        ReporterArg::Markdown => {
+            markdown::report(&all_findings, &typosquat_warnings, args.output.as_deref())
+        }
     }
 }
 

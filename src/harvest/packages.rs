@@ -385,3 +385,16 @@ pub fn all_targets() -> Vec<&'static HarvestTarget> {
     out.extend(CARGO.iter());
     out
 }
+
+/// Return popular package names grouped by dep-doctor ecosystem.
+/// Used by the typosquat detector to compare scanned packages against.
+pub fn popular_names(ecosystem: &str) -> Vec<&'static str> {
+    let targets: &[HarvestTarget] = match ecosystem {
+        "npm" => NPM,
+        "pip" => PIP,
+        "go" => GO,
+        "cargo" => CARGO,
+        _ => return Vec::new(),
+    };
+    targets.iter().map(|t| t.name).collect()
+}

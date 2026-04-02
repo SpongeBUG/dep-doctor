@@ -1,13 +1,14 @@
 # dep-doctor — Current Focus
 
-## v0.3.0 — ✅ SHIPPED
+## v0.4.0 — ✅ SHIPPED
 
-All three subtasks complete and verified:
-- Subtask A: `src/bin/harvest.rs` + `src/harvest/` — downloads OSV zips, produces 2,392 problems
-- Subtask B: `src/feed/` — 24h cache, CDN fetch, local dev fallback, integrated into scan
-- Subtask C: `.github/workflows/harvest.yml` — nightly 02:00 UTC, publishes to feeds/latest release
+Supply chain attack detection beyond CVEs:
+- Typosquat detector (`src/supply_chain/typosquat.rs`) — Levenshtein ≤2 against popular-500 list
+- MALICIOUS ecosystem harvest (`src/harvest/runner.rs`) — unfiltered ingest of OSV MALICIOUS zip
+- `ProblemKind` enum (Cve | SupplyChain) with `#[serde(default)]` backward compat
+- All 3 reporters updated with [SUPPLY CHAIN] labels + typosquat warning sections
 
-## Task 1: v0.4.0 — Supply Chain Attack Detection
+## Task 1: v0.5.0 — LLM-Assisted Source Pattern Generation
 **Status:** Not started
-**What:** Detect packages with suspicious publish patterns (new maintainer, rapid version bump, install scripts)
-**See:** ROADMAP.md → "Supply chain attack detection"
+**What:** Use LLM to auto-generate deep-scan regex patterns from CVE descriptions
+**See:** ROADMAP.md → v0.5.0
