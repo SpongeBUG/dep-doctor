@@ -18,7 +18,7 @@ pub struct Query {
     pub package: QueryPackage,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 pub struct QueryPackage {
     pub name: String,
     pub ecosystem: String,
@@ -88,7 +88,7 @@ pub struct Reference {
 
 // ── HTTP call ──────────────────────────────────────────────────
 
-/// Post a batch of queries to OSV.dev.
+/// Post a batch of versioned queries to OSV.dev.
 /// Returns an empty vec on network error (graceful degradation).
 pub fn query_batch(queries: &[Query]) -> Result<Vec<QueryResult>> {
     if queries.is_empty() {

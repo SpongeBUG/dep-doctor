@@ -1,3 +1,4 @@
+
 use std::collections::HashSet;
 
 use anyhow::Result;
@@ -19,15 +20,19 @@ pub fn run(args: ScanArgs) -> Result<()> {
         return Ok(());
     }
 
-    let problems = all_problems();
+    // Layer 1: built-in problems (always present).
+    let mut problems = all_problems();
 
-    // If --online, pre-fetch OSV data for all packages across all repos.
+    // Layer 2: nightly feed (default enrichment — no flag required).
+    let feed_problems = crate::feed::load_feed();
+    merge_problems(&mut problems, feed_problems);
+
+    // Layer 3: --online adds live OSV on top of feed + built-in.
     let all_repo_packages = read_all_packages(&repos)?;
-    let osv_problems = if args.online {
-        crate::fetcher::query_packages(&all_repo_packages)
-    } else {
-        Vec::new()
-    };
+    if args.online {
+        let osv_problems = crate::fetcher::query_packages(&all_repo_packages);
+        merge_problems(&mut problems, osv_problems);
+    }
 
     let pb = build_progress_bar(repos.len() as u64);
     let mut all_findings: Vec<Finding> = Vec::new();
@@ -36,32 +41,14 @@ pub fn run(args: ScanArgs) -> Result<()> {
         pb.set_message(format!("Scanning {}", repo.name));
 
         let packages = manifest::read_all(repo)?;
-        let mut matches = version_matcher::match_problems(&packages, &problems);
+        let matches = version_matcher::match_problems(&packages, &problems);
 
-        // Merge OSV findings, dedup by problem ID (built-in wins).
-        if args.online {
-            let osv_matches = version_matcher::match_problems(&packages, &osv_problems);
-            let existing_ids: HashSet<&str> =
-                matches.iter().map(|f| f.problem.id.as_str()).collect();
-            let new = osv_matches
-                .into_iter()
-                .filter(|f| !existing_ids.contains(f.problem.id.as_str()));
-            matches.extend(new);
-        }
-
-        if args.deep && !matches.is_empty() {
-            for finding in &mut matches {
-                finding.source_hits = deep_scan::scan_repo(repo, finding.problem)?;
-            }
-        }
+        let mut matches = apply_deep_scan(matches, &args, repo)?;
 
         let min_sev = args.severity.clone();
-        let filtered = matches
-            .into_iter()
-            .filter(|f| f.problem.severity_rank() >= min_sev.rank())
-            .collect::<Vec<_>>();
+        matches.retain(|f| f.problem.severity_rank() >= min_sev.rank());
 
-        all_findings.extend(filtered);
+        all_findings.extend(matches);
         pb.inc(1);
     }
 
@@ -72,6 +59,30 @@ pub fn run(args: ScanArgs) -> Result<()> {
         ReporterArg::Json => json::report(&all_findings, args.output.as_deref()),
         ReporterArg::Markdown => markdown::report(&all_findings, args.output.as_deref()),
     }
+}
+
+/// Merge `incoming` into `base`, skipping any ID already present (base wins).
+fn merge_problems(base: &mut Vec<crate::problems::schema::Problem>, incoming: Vec<crate::problems::schema::Problem>) {
+    let existing_ids: HashSet<String> = base.iter().map(|p| p.id.clone()).collect();
+    for p in incoming {
+        if !existing_ids.contains(&p.id) {
+            base.push(p);
+        }
+    }
+}
+
+/// Run deep scan if requested and there are findings.
+fn apply_deep_scan<'a>(
+    mut matches: Vec<Finding<'a>>,
+    args: &ScanArgs,
+    repo: &repo_finder::Repo,
+) -> Result<Vec<Finding<'a>>> {
+    if args.deep && !matches.is_empty() {
+        for finding in &mut matches {
+            finding.source_hits = deep_scan::scan_repo(repo, finding.problem)?;
+        }
+    }
+    Ok(matches)
 }
 
 /// Read all packages from all repos in one pass (used for OSV batch query).

@@ -1,8 +1,9 @@
-// lib.rs exposes internal modules for unit testing.
-// The binary entry point remains src/main.rs.
+// lib.rs exposes internal modules for unit testing and the harvest binary.
 pub mod cli;
 pub mod deep_scan;
+pub mod feed;
 pub mod fetcher;
+pub mod harvest;
 pub mod problems;
 pub mod reporter;
 pub mod scanner;
